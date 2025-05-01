@@ -140,7 +140,7 @@ export default {
             if (doc.data().rol != 1 && doc.data().rol != 3) {
               this.$router.push({ name: "home" });
             } else {
-              this.user = user;
+              this.user = id;
             }
           } else {
             this.$router.push({ name: "home" });

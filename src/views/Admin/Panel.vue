@@ -238,7 +238,7 @@ export default {
             if (doc.data().rol != 1) {
               this.$router.push({ name: "home" });
             } else {
-              this.user = user;
+              this.user = id;
             }
           } else {
             this.$router.push({ name: "home" });
