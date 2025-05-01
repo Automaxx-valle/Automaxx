@@ -6,8 +6,8 @@
       </header>
 
       <section>
-        <h2>PÁGINA DE INICIO</h2>
-        <p>Aún en desarrollo</p>
+        <h2>PÁGINA DE INICIO.</h2>
+        <p>Inicia sesión para acceder al sistema.</p>
       </section>
     </div>
   </div>
@@ -347,8 +347,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* FOOTER */

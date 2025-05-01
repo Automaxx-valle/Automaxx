@@ -53,10 +53,7 @@
           </button>
 
           <!--Cerrar el modal de pago-->
-          <button
-            class="btn button btn-primary"
-            @click="cerrar"
-          >
+          <button class="btn button btn-primary" @click="cerrar">
             <strong>
               <i class="fa fa-arrow-left espacio-der"></i>
               Regresar
@@ -123,13 +120,20 @@ export default {
       //Hacer la consulta a Firebase
       try {
         const querySnapshot = await getDocs(collection(db, "Descuentos"));
-        this.descuentos = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          valor: doc.data().cantidad,
-        }));
-        this.error = null;
+        if (querySnapshot.empty) {
+          // No hay documentos en la colección
+          this.error =
+            "No hay descuentos disponibles. Solicita al usuario administrador que agregue algunos desde el panel de administrador.";
+        } else {
+          // Sí hay documentos
+          this.descuentos = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            valor: doc.data().cantidad,
+          }));
+          this.error = null;
+        }
       } catch (error) {
-        this.error = "Error al obtener los equipos: " + error;
+        this.error = "Error al obtener los descuentos: " + error;
       }
     },
     igualar() {
@@ -160,7 +164,7 @@ export default {
       if (this.total >= 0) {
         this.error = null;
         this.$emit("pago", this.descuento);
-      }else{
+      } else {
         this.error = "El descuento no puede superar al total";
       }
     },

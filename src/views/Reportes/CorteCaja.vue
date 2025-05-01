@@ -133,6 +133,20 @@ export default {
       y += 7;
       doc.text(`Saldo final: $${saldo.toFixed(2)}`, marginLeft, y);
 
+      y += 10;
+      doc.line(marginLeft, y, doc.internal.pageSize.getWidth() - marginLeft, y); // Línea divisoria
+      y += 10;
+      // Vehículos antendidos en el día
+      doc.setFont("helvetica", "bold");
+      doc.text("Atención del día:", marginLeft, y);
+      y += 8;
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `Vehículos que se atendieron en el día: ${vehiculosDelMes}`,
+        marginLeft,
+        y
+      );
+
       y += 12;
       doc.line(marginLeft, y, doc.internal.pageSize.getWidth() - marginLeft, y); // Línea divisoria
       y += 10;

@@ -53,8 +53,8 @@
                 />
                 <select class="form-control" v-model="rol" required>
                   <option value="1">Administrador</option>
-                  <option value="2">Ticketero</option>
-                  <option value="3">Cajero</option>
+                  <option value="2">Cajero</option>
+                  <option value="3">Ticketero</option>
                 </select>
                 <button type="submit" class="btn button is-primary">
                   Registrar Usuario
@@ -74,8 +74,8 @@
                     class="form-control"
                   >
                     <option value="1">Administrador</option>
-                    <option value="2">Recepción</option>
-                    <option value="3">Cajero</option>
+                    <option value="2">Cajero</option>
+                    <option value="3">Ticketero</option>
                   </select>
                   <button
                     @click="eliminarUsuario(usuario.id)"
