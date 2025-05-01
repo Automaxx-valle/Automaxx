@@ -81,7 +81,6 @@ export default {
       //fecha
       day: null,
       fecha: null,
-      fecha_id: null,
       //cliente
       nombre: null,
       tel: null,
@@ -125,14 +124,41 @@ export default {
     },
 
     //Vehiculo
-    vehiculo(total, caract, servicios, precios) {
+    async vehiculo(total, caract, servicios, precios) {
       this.total = total;
       this.caract = caract;
       this.servicios = servicios;
       this.precios = precios;
       this.fechaYhora();
-      this.id_ve = this.fecha_id + caract[0];
+      this.id_ve = await this.generarFolio();
       this.agregarDescuento = true;
+    },
+    async generarFolio() {
+      const folioRef = db.collection("folios").doc("vehiculos");
+
+      try {
+        const newFolio = await db.runTransaction(async (transaction) => {
+          const folioDoc = await transaction.get(folioRef);
+          let current = 0;
+          if (folioDoc.exists) {
+            current = folioDoc.data().contador || 0; // Obtén el valor del contador
+          }
+
+          // Si el contador supera los 99999 (5 dígitos), reiniciamos a 1
+          const next = current >= 99999 ? 1 : current + 1;
+
+          // Actualiza el contador
+          transaction.set(folioRef, { contador: next }, { merge: true });
+
+          return next;
+        });
+
+        // Devuelve el folio con 5 dígitos, añadiendo ceros a la izquierda si es necesario
+        return String(newFolio).padStart(5, "0");
+      } catch (e) {
+        console.error("Error generando folio:", e);
+        return "ERR"; // Valor por defecto si algo falla
+      }
     },
 
     //Obtener la fecha y hora del servidor
@@ -144,8 +170,6 @@ export default {
       this.day = fecha.getDate().toString();
       var hours = fecha.getHours().toString();
       var minutes = fecha.getMinutes().toString();
-
-      this.fecha_id = hours + this.day + month + year;
       this.fecha =
         year + "-" + month + "-" + this.day + " " + hours + ":" + minutes;
     },
@@ -245,7 +269,7 @@ export default {
             if (doc.data().rol != 1 && doc.data().rol != 3) {
               this.$router.push({ name: "home" });
             } else {
-              this.user = id;
+              this.user = user;
             }
           } else {
             this.$router.push({ name: "home" });

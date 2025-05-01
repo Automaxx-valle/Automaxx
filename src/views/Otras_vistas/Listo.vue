@@ -31,6 +31,8 @@
                   Listos
                 </strong>
               </button>
+            </div>
+            <div class="horizontal">
               <button
                 class="btn button btn-primary"
                 type="submit"
@@ -184,32 +186,35 @@ export default {
     buscarVehiculo() {
       this.cargando = true;
 
-      //Obtiene el día actual
       const hoy = new Date();
-      hoy.setDate(parseInt(this.day)); // ya tienes this.day desde obtenerMes()
+      hoy.setDate(parseInt(this.day));
       const diaActual = hoy.getDate().toString();
 
-      //Obtiene un día antes
       const ayer = new Date(hoy);
       ayer.setDate(hoy.getDate() - 1);
       const diaAnterior = ayer.getDate().toString();
 
-      //Realiza las consultas
       const diasConsulta = [diaAnterior, diaActual];
-      diasConsulta.forEach((dia) => {
-        const collectionRef = db.collection(dia);
-        collectionRef
+
+      const promesas = diasConsulta.map((dia) => {
+        return db
+          .collection(dia)
           .get()
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
               this.clasificar(doc, dia);
             });
-          })
-          .catch((err) => {
-            this.openModal(0, err.message);
           });
       });
-      this.cargando = false;
+
+      Promise.all(promesas)
+        .then(() => {
+          this.cargando = false;
+        })
+        .catch((err) => {
+          this.openModal(0, err.message);
+          this.cargando = false;
+        });
     },
     clasificar(doc, dia) {
       if (doc.data().ya_entregado != true) {
@@ -307,7 +312,7 @@ export default {
             if (doc.data().rol > 3) {
               this.$router.push({ name: "home" });
             } else {
-              this.user = id;
+              this.user = user;
             }
           } else {
             this.$router.push({ name: "home" });

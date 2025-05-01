@@ -13,8 +13,8 @@
         </section>
 
         <!--Cortes de caja-->
-        <CorteCaja></CorteCaja>
-        <CorteMensual></CorteMensual>
+        <div class="card"><CorteCaja></CorteCaja></div>
+        <div class="card"><CorteMensual></CorteMensual></div>
       </div>
     </div>
   </div>
@@ -59,10 +59,10 @@ export default {
         .get()
         .then((doc) => {
           if (doc.exists) {
-            if (doc.data().rol != 1) {
+            if (doc.data().rol > 2) {
               this.$router.push({ name: "home" });
             } else {
-              this.user = id;
+              this.user = user;
             }
           } else {
             this.$router.push({ name: "home" });

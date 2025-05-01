@@ -19,9 +19,7 @@
 
         <div class="cardi">
           <h3>Servicios:</h3>
-          <p>
-            <span>Equipo: {{ documento.data.caract_veh[3] }}</span>
-          </p>
+          <p><span>Equipo: </span>{{ documento.data.caract_veh[3] }}</p>
           <p v-for="(servicio, index) in documento.data.servicios" :key="index">
             <span>
               {{ servicio }}
@@ -31,87 +29,62 @@
 
         <div class="cardi" v-if="fechaIngresada">
           <h3>Ingreso</h3>
-          <p>
-            <span>Fecha: {{ fechaFormateada }}</span>
-          </p>
-          <p>
-            <span> Hace: {{ tiempoTranscurrido }} </span>
-          </p>
-          <p>
-            <span>Usuario: {{ documento.data.usuario_ingreso }}</span>
-          </p>
+          <p><span>Fecha: </span>{{ fechaFormateada }}</p>
+          <p><span> Hace: </span>{{ tiempoTranscurrido }}</p>
+          <p><span>Usuario: </span>{{ documento.data.usuario_ingreso }}</p>
         </div>
         <div class="cardi" v-else>
           <h3>Ingreso</h3>
-          <span>Cargando información...</span>
+          <p>Cargando información...</p>
         </div>
 
         <div class="cardi">
           <h3>Costos</h3>
-          <p>
-            <span>Total: ${{ documento.data.total }}</span>
-          </p>
-          <p>
-            <span>Descuento: ${{ documento.data.descuento }}</span>
-          </p>
-          <p>
-            <span>Pagado: ${{ documento.data.pagado }}</span>
-          </p>
+          <p><span>Total: </span>${{ documento.data.total }}</p>
+          <p><span>Descuento: </span>${{ documento.data.descuento }}</p>
+          <p><span>Pagado: </span>${{ documento.data.pagado }}</p>
         </div>
 
         <div class="cardi">
           <h3>Entrega</h3>
           <p>
-            <span>Entregado: {{ documento.data.ya_entregado }}</span>
+            <span>Entregado: </span
+            >{{ documento.data.ya_entregado ? "Sí" : "No" }}
           </p>
-          <p>
-            <span>Usuario: {{ documento.data.usuario_entrego }}</span>
-          </p>
-          <p>
-            <span v-if="this.documento.data.fecha_entrega"
-              >Fecha:
-              {{
-                new Date(
-                  this.documento.data.fecha_entrega.seconds * 1000
-                ).toLocaleString()
-              }}</span
-            >
+          <p><span>Usuario: </span>{{ documento.data.usuario_entrego }}</p>
+          <p v-if="this.documento.data.fecha_entrega">
+            <span>Fecha: </span>
+            {{
+              new Date(
+                this.documento.data.fecha_entrega.seconds * 1000
+              ).toLocaleString()
+            }}
           </p>
         </div>
 
-        <div class="cardi">
-          <h3>Método de pago</h3>
+        <div class="cardi" v-if="ultimoPago">
+          <h3>Último pago</h3>
+          <p><strong>Método:</strong> {{ ultimoPago.medio }}</p>
+          <p><strong>Usuario:</strong> {{ ultimoPago.usuario }}</p>
           <p>
-            <span>Método: {{ documento.data.medio_pago }}</span>
+            <strong>Fecha:</strong>
+            {{ new Date(ultimoPago.fecha.seconds * 1000).toLocaleString() }}
           </p>
-          <p>
-            <span>Usuario: {{ documento.data.usuario_pagaron }}</span>
-          </p>
-          <p>
-            <span v-if="this.documento.data.fecha_pago"
-              >Fecha:
-              {{
-                new Date(
-                  this.documento.data.fecha_pago.seconds * 1000
-                ).toLocaleString()
-              }}</span
-            >
-          </p>
+        </div>
+        <div class="cardi" v-else>
+          <h3>Último pago</h3>
+          <p>Cargando información...</p>
         </div>
 
         <div class="cardi">
           <h3>Cliente</h3>
-          <p>
-            <span>Nombre: {{ documento.data.nombre }}</span>
-          </p>
-          <p>
-            <span>Teléfono: {{ documento.data.cliente }}</span>
-          </p>
+          <p><span>Nombre: </span>{{ documento.data.nombre }}</p>
+          <p><span>Teléfono: </span>{{ documento.data.cliente }}</p>
         </div>
 
         <div class="cardi">
           <h3>Día del mes en el que se encontró:</h3>
-          <span>{{ documento.mes }}</span>
+          <p>{{ documento.mes }}</p>
         </div>
       </div>
 
@@ -145,7 +118,13 @@
           <button
             class="btn button btn-primary"
             type="submit"
-            @click="actualizar_listo(documento.id, documento.mes)"
+            @click="
+              actualizar_listo(
+                documento.id,
+                documento.mes,
+                documento.data.cliente
+              )
+            "
             v-if="mostrarBoton == 1"
           >
             <strong>
@@ -234,7 +213,8 @@ export default {
       return /^\d{10}$/.test(numero);
     },
     // Envía los parámetros para actualizar el estatus del vahiculo
-    actualizar_listo(id, mes) {
+    actualizar_listo(id, mes, number) {
+      this.sendWhatsAppMessage(number);
       this.$emit("actualizar", { id, mes });
     },
 
@@ -246,14 +226,13 @@ export default {
 
     //Envía un mensaje al cliente
     sendWhatsAppMessage(number) {
-      const completo = "521" + number;
-      const message =
-        "¡Hola! Tu vehículo ya está listo, y ya puedes pasar por él.";
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/${completo}?text=${encodedMessage}`;
-
-      // Abrir en nueva pestaña
-      window.open(whatsappUrl, "_blank");
+      if (this.esTelefonoValido(number)) {
+        const completo = "521" + number;
+        const message = `AUTOMAXX, Tu vehículo ${this.documento.data.caract_veh[2]} ${this.documento.data.caract_veh[0]} se encuentra listo.`;
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${completo}?text=${encodedMessage}`;
+        window.open(whatsappUrl, "_blank");
+      }
     },
 
     // Imprimir ingreso
@@ -264,7 +243,9 @@ export default {
         modelo: doc.data.caract_veh[2],
         placas: doc.data.caract_veh[0],
         equipo: doc.data.caract_veh[3],
-        fecha: new Date(doc.data.fecha_ingresado.seconds * 1000),
+        fecha: new Date(
+          doc.data.fecha_ingresado.seconds * 1000
+        ).toLocaleString(),
         tel: doc.data.cliente,
         servicios: doc.data.servicios,
         precios: doc.data.precios,
@@ -279,12 +260,14 @@ export default {
 
     //Imprimir pago
     imprimirPago(doc) {
+      const ultimoPago = this.ultimoPago;
+
       this.dataP = {
-        fecha: new Date(doc.data.fecha_pago.seconds * 1000),
-        cajero: doc.data.usuario_pagaron,
+        fecha: new Date(ultimoPago.fecha.seconds * 1000).toLocaleString(),
+        cajero: ultimoPago.usuario,
         id: doc.id,
         modelo: doc.data.caract_veh[2],
-        tp: doc.data.medio_pago,
+        tp: ultimoPago.medio,
         total: doc.data.total - doc.data.descuento,
         pagado: doc.data.pagado,
         restante: doc.data.total - doc.data.pagado - doc.data.descuento,
@@ -310,6 +293,10 @@ export default {
       const horas = Math.floor(diferenciaMs / (1000 * 60 * 60));
 
       return `${horas} horas y ${minutos} minutos`;
+    },
+    ultimoPago() {
+      const pagos = this.documento?.data?.pagos || [];
+      return pagos.length > 0 ? pagos[pagos.length - 1] : null;
     },
   },
 };

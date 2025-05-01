@@ -5,6 +5,7 @@ import HomeView from '../views/Otras_vistas/HomeView.vue'
 import Login from '../views/Auth/Login.vue'
 import Dashboard from '../views/Reportes/Dashboard.vue'
 import Update from '../views/Auth/Update.vue'
+import UpdateSecret from '@/views/Auth/UpdateSecret.vue'
 import Ingresar from '../views/Ingresar/Ingresar.vue'
 import Cobrar from '../views/Cobrar/Cobrar.vue'
 import Listo from '../views/Otras_vistas/Listo.vue'
@@ -39,6 +40,14 @@ const routes = [
   path: '/update',
   name: 'update',
   component: Update,
+  meta: {
+    requireAuth: true
+  }
+},
+{
+  path: '/updateSecret',
+  name: 'updateSecret',
+  component: UpdateSecret,
   meta: {
     requireAuth: true
   }

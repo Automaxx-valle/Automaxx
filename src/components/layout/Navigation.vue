@@ -63,19 +63,19 @@
                   <i class="fa fa-check"></i>
                   <span class="espacio-izq">Lista de vehículos</span>
                 </router-link>
+                <!--Dashboard (reportes)-->
+                <router-link
+                  class="navbar-item"
+                  to="/dashboard"
+                  v-if="rol > 0 && rol < 3"
+                >
+                  <i class="fa fa-bug"></i>
+                  <span class="espacio-izq">Reportes</span>
+                </router-link>
                 <!--Panel de administrador-->
                 <router-link class="navbar-item" to="/Panel" v-if="rol == 1">
                   <i class="fa fa-id-badge"></i>
                   <span class="espacio-izq">Panel administrador</span>
-                </router-link>
-                <!--Dashboard-->
-                <router-link
-                  class="navbar-item"
-                  to="/dashboard"
-                  v-if="rol == 1"
-                >
-                  <i class="fa fa-bug"></i>
-                  <span class="espacio-izq">Reportes</span>
                 </router-link>
                 <!--Update-->
                 <router-link class="navbar-item" to="/update">
