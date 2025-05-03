@@ -149,13 +149,6 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore"; // Importar Firestore
 import db from "../../firebase/init.js";
-import {
-  doc,
-  deleteDoc,
-  getFirestore,
-  collection,
-  getDocs,
-} from "firebase/firestore";
 
 //Importar componentes
 import DialogComponent from "../../components/layout/Modal.vue";

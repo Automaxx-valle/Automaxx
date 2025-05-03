@@ -66,6 +66,7 @@ export default {
 
       //Variable html
       const content = `
+      <div style= "margin: 0; padding: 0; line-height: 0.4;">
       <img src="${require("@/components/assets/logo_al.png")}" style="width: 200px;">
       <h2>Folio: ${this.data.id}</h2>
       <div>
@@ -89,12 +90,13 @@ export default {
             <td>${this.data.observacion}</td>
           </tr>
       </table>
-      <p style="font-size: 10px;">IMPORTANTE: NO NOS HACEMOS RESPONSABLES POR LOS OBJETOS DE VALOR OLVIDADOS DENTRO DEL AUTO, 
+      </div>
+      </div>
+      <p style="font-size: 9px;">IMPORTANTE: NO NOS HACEMOS RESPONSABLES POR LOS OBJETOS DE VALOR OLVIDADOS DENTRO DEL AUTO, 
         NI POR FALLAS MECÁNICAS O ELÉCTRICAS, NI POR EL DAÑO Y/O ROBO TOTAL O PARCIAL DEL AUTO, EL 
         SERVICIO DE LAVADO ES DE 45 MINUTOS, POR LO QUE PEDIMOS DE LA MANERA MÁS ATENTA RECOGER SU 
         AUTOMÓVIL EN EL TIEMPO SEÑALADO, DE LO CONTRARIO SE ESTACIONARÁ EN LA CALLE, SIN HACERNOS 
         RESPONSABLES POR CUALQUIER DAÑO, GOLPES, RAYONES, ROBO TOTAL O PARCIAL DEL VEHÍCULO.</p>
-      </div>
     `;
 
       //Mandar a imprimir

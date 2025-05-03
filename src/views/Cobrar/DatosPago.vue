@@ -62,43 +62,6 @@
     </div>
   </section>
 
-  <!--Entregado-->
-  <section v-if="this.info">
-    <div v-if="!this.info.ya_entregado">
-      <h2>Entregado</h2>
-      <div class="card">
-        <ul>
-          <li>
-            <input type="checkbox" class="mycheck" v-model="entregado_a" />
-            <span>¿entregado?</span>
-          </li>
-          <li v-if="this.total < 1">
-            <form class="f">
-              <button
-                class="btn button btn-primary"
-                type="submit"
-                @click="entregarVehiculo()"
-                :disabled="!this.entregado_a"
-              >
-                <strong>
-                  <i class="fa fa-upload espacio-der"></i>
-                  Cargar datos al servidor
-                </strong>
-              </button>
-            </form>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div v-else>
-      <h2>El vehículo ya fue entregado a su dueño</h2>
-      <p>
-        Se entregó el vehículo el día {{ this.fecha_entrega }} por
-        {{ this.info.usuario_entrego }}
-      </p>
-    </div>
-  </section>
-
   <!--Actualizar los parámetros-->
   <section v-if="this.total > 0">
     <h2>Enviar los datos</h2>
@@ -145,13 +108,11 @@ export default {
       pagado: null,
       medio: null,
       cortesia: null,
-      entregado_a: false,
       //tipos de pagos
       total: 0,
       tipos: [],
       //fechas
       fecha_pago: null,
-      fecha_entrega: null,
     };
   },
   name: "DatosPago",
@@ -194,12 +155,6 @@ export default {
         const date = new Date(this.info.fecha_pago.seconds * 1000);
         this.fecha_pago = date.toLocaleString();
       }
-
-      //Revisar si ya fue entregado
-      if (this.info.ya_entregado) {
-        const date = new Date(this.info.fecha_entrega.seconds * 1000);
-        this.fecha_entrega = date.toLocaleString();
-      }
     },
 
     //Validar el folio de la cortesía
@@ -235,40 +190,12 @@ export default {
     //Regresar la informacion al componente padre
     enviar() {
       if (this.pagado <= this.total && this.medio) {
-        if (this.entregado_a) {
-          this.entregarVehiculo();
-        }
         this.$emit("regreso", this.pagado, this.medio);
       } else {
         this.$emit(
           "aviso",
           0,
           "La cantidad que se va a pagar es mayor que lo que el cliente debe"
-        );
-      }
-    },
-
-    //Entregar el vehiculo
-    entregarVehiculo() {
-      if (this.pagado == this.total) {
-        const docRef = db.collection(this.day).doc(this.id);
-        docRef
-          .update({
-            ya_entregado: this.entregado_a,
-            usuario_entrego: this.user,
-            fecha_entrega: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .then(() => {
-            this.$emit("aviso", 3, "éxito!");
-          })
-          .catch((err) => {
-            this.$emit("aviso", 0, err.message);
-          });
-      } else {
-        this.$emit(
-          "aviso",
-          0,
-          "No se puede entregar el vehículo porque aún tiene un adeudo"
         );
       }
     },

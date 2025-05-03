@@ -199,8 +199,6 @@ export default {
             pagado: 0,
             pagos: [],
             descuento: this.descuento,
-            listo: false,
-            ya_entregado: false,
           })
           .then(() => {
             this.openModal(3, "éxito!");

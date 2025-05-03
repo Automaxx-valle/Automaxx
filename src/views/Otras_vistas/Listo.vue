@@ -14,33 +14,21 @@
               <button
                 class="btn button btn-primary"
                 type="submit"
-                @click="cambiarOpcion(3)"
-              >
-                <strong>
-                  <i class="fa fa-cog espacio-der"></i>
-                  En proceso
-                </strong>
-              </button>
-              <button
-                class="btn button btn-primary"
-                type="submit"
                 @click="cambiarOpcion(1)"
               >
                 <strong>
-                  <i class="fa fa-check espacio-der"></i>
-                  Listos
+                  <i class="fa fa-cog espacio-der"></i>
+                  Pendientes
                 </strong>
               </button>
-            </div>
-            <div class="horizontal">
               <button
                 class="btn button btn-primary"
                 type="submit"
                 @click="cambiarOpcion(2)"
               >
                 <strong>
-                  <i class="fa fa-car espacio-der"></i>
-                  Entregados
+                  <i class="fa fa-check espacio-der"></i>
+                  Pagados
                 </strong>
               </button>
               <button
@@ -60,38 +48,35 @@
           <div v-if="cargando" class="spinner"></div>
         </section>
 
-        <!--Muestra vehículos en proceso-->
-        <section v-if="this.opc == 3">
-          <h2>Vehículos en proceso ({{ this.otros.length }})</h2>
-          <info-vehiculo
-            v-for="(documento, index) in otros"
-            :key="index"
-            :documento="documento"
-            :mostrarBoton="1"
-            @actualizar="actualizar_listo"
-          ></info-vehiculo>
-        </section>
-
-        <!--Muestra vehículos listos-->
+        <!--Muestra vehículos pendientes-->
         <section v-if="this.opc == 1">
-          <h2>Vehículos listos ({{ this.listos.length }})</h2>
+          <h2>Vehículos pendientes ({{ this.listos.length }})</h2>
+          <input
+            type="text"
+            class="form-control espacio"
+            placeholder="Búsqueda por folio o modelo del vehículo"
+            v-model="busqueda"
+          />
           <info-vehiculo
-            v-for="(documento, index) in listos"
+            v-for="(documento, index) in vehiculosFiltradosPendientes"
             :key="index"
             :documento="documento"
-            :mostrarBoton="2"
-            @entregar="actualizar_entregar"
           ></info-vehiculo>
         </section>
 
-        <!--Muestra vehículos entregados-->
+        <!--Muestra vehículos pagados-->
         <section v-if="this.opc == 2">
-          <h2>Vehículos entregados ({{ this.entregados.length }})</h2>
+          <h2>Vehículos pagados ({{ this.entregados.length }})</h2>
+          <input
+            type="text"
+            class="form-control espacio"
+            placeholder="Búsqueda por folio o modelo del vehículo"
+            v-model="busqueda"
+          />
           <info-vehiculo
-            v-for="(documento, index) in entregados"
+            v-for="(documento, index) in vehiculosFiltradosPagados"
             :key="index"
             :documento="documento"
-            :mostrarBoton="0"
           ></info-vehiculo>
         </section>
 
@@ -102,7 +87,6 @@
             v-for="(documento, index) in descuento"
             :key="index"
             :documento="documento"
-            :mostrarBoton="0"
           ></info-vehiculo>
         </section>
       </div>
@@ -127,7 +111,7 @@ import db from "../../firebase/init.js";
 
 //importar las ventana emergentes
 import DialogComponent from "@/components/layout/Modal.vue";
-import InfoVehiculo from "@/components/layout/InfoVehiculo.vue";
+import InfoVehiculo from "@/components/layout/InfoVehiculorRes.vue";
 
 export default {
   components: {
@@ -139,8 +123,8 @@ export default {
       //usuario firebase
       user: null,
       //vehiculos
+      busqueda: null,
       listos: [],
-      otros: [],
       entregados: [],
       descuento: [],
       opc: null,
@@ -176,7 +160,6 @@ export default {
       this.day = fecha.getDate().toString();
 
       this.listos = [];
-      this.otros = [];
       this.entregados = [];
       this.cargando = true;
       this.buscarVehiculo();
@@ -190,11 +173,7 @@ export default {
       hoy.setDate(parseInt(this.day));
       const diaActual = hoy.getDate().toString();
 
-      const ayer = new Date(hoy);
-      ayer.setDate(hoy.getDate() - 1);
-      const diaAnterior = ayer.getDate().toString();
-
-      const diasConsulta = [diaAnterior, diaActual];
+      const diasConsulta = [diaActual];
 
       const promesas = diasConsulta.map((dia) => {
         return db
@@ -217,14 +196,10 @@ export default {
         });
     },
     clasificar(doc, dia) {
-      if (doc.data().ya_entregado != true) {
-        if (doc.data().listo == true) {
-          this.listos.push({ id: doc.id, data: doc.data(), mes: dia });
-        } else {
-          this.otros.push({ id: doc.id, data: doc.data(), mes: dia });
-        }
-      } else {
+      if (doc.data().total == doc.data().pagado) {
         this.entregados.push({ id: doc.id, data: doc.data(), mes: dia });
+      } else {
+        this.listos.push({ id: doc.id, data: doc.data(), mes: dia });
       }
       //Agregar un duplicado si el vehículo tuvo descuento
       if (doc.data().descuento > 0) {
@@ -235,62 +210,6 @@ export default {
     //cambiar opcion
     cambiarOpcion(opcion) {
       this.opc = opcion;
-    },
-
-    //Actualizar a listo
-    actualizar_listo(data) {
-      const docRef = db.collection(data.mes).doc(data.id);
-      docRef
-        .update({
-          listo: true,
-        })
-        .then(() => {
-          // Buscar el índice del documento en el arreglo "otros"
-          const index = this.otros.findIndex((doc) => doc.id === data.id);
-          if (index !== -1) {
-            // Sacar el elemento del arreglo "otros"
-            const [documento] = this.otros.splice(index, 1);
-            // Actualizar su estado
-            documento.data.listo = true;
-            // Moverlo a "listos"
-            this.listos.push(documento);
-          }
-          this.openModal(10, "listo");
-        })
-        .catch((err) => {
-          this.openModal(0, err.message);
-        });
-    },
-
-    //Actualizar a entregado
-    actualizar_entregar(data) {
-      if (data.dado < data.total) {
-        this.openModal(11);
-      } else {
-        const docRef = db.collection(data.mes).doc(data.id);
-        docRef
-          .update({
-            ya_entregado: true,
-            usuario_entrego: this.user,
-            fecha_entrega: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .then(() => {
-            // Buscar el índice del documento en el arreglo "listos"
-            const index = this.listos.findIndex((doc) => doc.id === data.id);
-            if (index !== -1) {
-              // Sacar el elemento del arreglo "listos"
-              const [documento] = this.listos.splice(index, 1);
-              // Actualizar su estado
-              documento.data.ya_entregado = true;
-              // Moverlo a "entregados"
-              this.entregados.push(documento);
-            }
-            this.openModal(10, "entregado");
-          })
-          .catch((err) => {
-            this.openModal(0, err.message);
-          });
-      }
     },
 
     //Usuario firebase
@@ -321,6 +240,34 @@ export default {
         .catch((err) => {
           this.$router.push({ name: "home" });
         });
+    },
+  },
+  computed: {
+    vehiculosFiltradosPagados() {
+      const filtro = (this.busqueda || "").toString().toLowerCase();
+
+      return this.entregados.filter((doc) => {
+        const folio = typeof doc.id === "string" ? doc.id.toLowerCase() : "";
+        const modelo =
+          typeof doc.data?.caract_veh?.[2] === "string"
+            ? doc.data.caract_veh[2].toLowerCase()
+            : "";
+
+        return folio.includes(filtro) || modelo.includes(filtro);
+      });
+    },
+    vehiculosFiltradosPendientes() {
+      const filtro = (this.busqueda || "").toString().toLowerCase();
+
+      return this.listos.filter((doc) => {
+        const folio = typeof doc.id === "string" ? doc.id.toLowerCase() : "";
+        const modelo =
+          typeof doc.data?.caract_veh?.[2] === "string"
+            ? doc.data.caract_veh[2].toLowerCase()
+            : "";
+
+        return folio.includes(filtro) || modelo.includes(filtro);
+      });
     },
   },
 };

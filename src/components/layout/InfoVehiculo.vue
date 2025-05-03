@@ -45,23 +45,6 @@
           <p><span>Pagado: </span>${{ documento.data.pagado }}</p>
         </div>
 
-        <div class="cardi">
-          <h3>Entrega</h3>
-          <p>
-            <span>Entregado: </span
-            >{{ documento.data.ya_entregado ? "Sí" : "No" }}
-          </p>
-          <p><span>Usuario: </span>{{ documento.data.usuario_entrego }}</p>
-          <p v-if="this.documento.data.fecha_entrega">
-            <span>Fecha: </span>
-            {{
-              new Date(
-                this.documento.data.fecha_entrega.seconds * 1000
-              ).toLocaleString()
-            }}
-          </p>
-        </div>
-
         <div class="cardi" v-if="ultimoPago">
           <h3>Último pago</h3>
           <p><strong>Método:</strong> {{ ultimoPago.medio }}</p>
@@ -107,49 +90,10 @@
             class="btn button btn-primary"
             type="submit"
             @click="imprimirPago(documento)"
-            v-if="mostrarBoton == 0"
           >
             <strong>
               <i class="fa fa-credit-card espacio-der"></i>
               Imprimir último pago
-            </strong>
-          </button>
-          <!--Botón para marcar al vehículo como listo-->
-          <button
-            class="btn button btn-primary"
-            type="submit"
-            @click="
-              actualizar_listo(
-                documento.id,
-                documento.mes,
-                documento.data.cliente
-              )
-            "
-            v-if="mostrarBoton == 1"
-          >
-            <strong>
-              <i class="fa fa-check espacio-der"></i>
-              Actualizar estatus a vehículo listo
-            </strong>
-          </button>
-          <!--Botón para marcar al vehículo como entregado-->
-          <button
-            class="btn button btn-primary"
-            type="submit"
-            @click="
-              actualizar_entregado(
-                documento.id,
-                documento.mes,
-                documento.data.pagado,
-                documento.data.descuento,
-                documento.data.total
-              )
-            "
-            v-if="mostrarBoton == 2"
-          >
-            <strong>
-              <i class="fa fa-car espacio-der"></i>
-              Entregar vehículo
             </strong>
           </button>
         </div>
@@ -159,7 +103,6 @@
           class="btn button btn-primary"
           type="submit"
           @click="sendWhatsAppMessage(documento.data.cliente)"
-          v-if="mostrarBoton == 2"
           :disabled="!esTelefonoValido(documento.data.cliente)"
         >
           <strong>
@@ -191,7 +134,6 @@ import ImprimirPago from "../print/ImprimirPago.vue";
 export default {
   props: {
     documento: Object,
-    mostrarBoton: String,
   },
   components: {
     ImprimirComponent,
@@ -211,17 +153,6 @@ export default {
     // Valida que el número de teléfono del cliente sea válido
     esTelefonoValido(numero) {
       return /^\d{10}$/.test(numero);
-    },
-    // Envía los parámetros para actualizar el estatus del vahiculo
-    actualizar_listo(id, mes, number) {
-      this.sendWhatsAppMessage(number);
-      this.$emit("actualizar", { id, mes });
-    },
-
-    // Envía los parámetros para actualizar el estatus del vahiculo
-    actualizar_entregado(id, mes, pagado, descuento, total) {
-      const dado = pagado + descuento;
-      this.$emit("entregar", { id, mes, dado, total });
     },
 
     //Envía un mensaje al cliente

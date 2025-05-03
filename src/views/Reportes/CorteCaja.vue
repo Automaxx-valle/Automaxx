@@ -51,7 +51,7 @@ export default {
         if (Array.isArray(data.pagos)) {
           data.pagos.forEach((pago) => {
             if (pago.medio === "Efectivo") {
-              totalIngresos += Number(pago.monto || 0);
+              totalIngresos += Number(pago.monto);
               this.ingresos.push({
                 ...pago,
                 dia,
