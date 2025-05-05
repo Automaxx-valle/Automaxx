@@ -38,10 +38,7 @@
 
         <!--Datos del pago-->
         <datos-pago
-          :id="id_ve"
-          :day="day"
           :info="dataVe"
-          :user="user"
           @aviso="openModal"
           @regreso="pagar"
         ></datos-pago>
@@ -100,7 +97,9 @@ export default {
       //fecha
       day: null,
       fecha: null,
+      //parametros de carga
       cargando: false,
+      pagando: false,
       //modal
       showModal: false,
       opcion: null,
@@ -154,13 +153,8 @@ export default {
       hoy.setDate(parseInt(this.day)); // ya tienes this.day desde obtenerMes()
       const diaActual = hoy.getDate().toString();
 
-      //Obtiene un día antes
-      const ayer = new Date(hoy);
-      ayer.setDate(hoy.getDate() - 1);
-      const diaAnterior = ayer.getDate().toString();
-
       //Realiza las consultas
-      const diasConsulta = [diaAnterior, diaActual];
+      const diasConsulta = [diaActual];
       diasConsulta.forEach((dia) => {
         const docRef = db.collection(dia).doc(this.id_ve);
         docRef
@@ -188,32 +182,42 @@ export default {
 
     //Actualizar datos del pago
     pagar(pagado, medio) {
-      if (this.formIsValid) {
-        const docRef = db.collection(this.day).doc(this.id_ve);
-        const nuevoPago = {
-          monto: pagado,
-          medio: medio,
-          fecha: new Date(),
-          usuario: this.user,
-        };
+      //Evita que se duplique el pago
+      if (!this.pagando) {
+        this.pagando = true;
 
-        docRef
-          .update({
-            pagos: firebase.firestore.FieldValue.arrayUnion(nuevoPago),
-            pagado: firebase.firestore.FieldValue.increment(pagado),
-          })
-          .then(() => {
-            this.imprimirPDF(pagado, medio);
-            this.openModal(3, "éxito!");
-          })
-          .catch((err) => {
-            this.openModal(0, err.message);
-          });
-      } else {
-        this.openModal(
-          0,
-          "Algún dato en el formulario es inválido o no está bien definido"
-        );
+        //Actualiza la informacion en el servidor
+        if (this.formIsValid) {
+          const docRef = db.collection(this.day).doc(this.id_ve);
+          const nuevoPago = {
+            monto: pagado,
+            medio: medio,
+            fecha: new Date(),
+            usuario: this.user,
+          };
+
+          docRef
+            .update({
+              pagos: firebase.firestore.FieldValue.arrayUnion(nuevoPago),
+              pagado: firebase.firestore.FieldValue.increment(pagado),
+            })
+            .then(() => {
+              this.imprimirPDF(pagado, medio);
+              this.openModal(3, "éxito!");
+            })
+            .catch((err) => {
+              this.openModal(0, err.message);
+            })
+            .finally(() =>{
+              this.pagando = false;
+            });
+        } else {
+          this.pagando = false;
+          this.openModal(
+            0,
+            "Algún dato en el formulario es inválido o no está bien definido"
+          );
+        }
       }
     },
 
@@ -226,6 +230,7 @@ export default {
         fecha: this.fecha,
         cajero: this.user,
         id: this.id_ve,
+        placas: this.dataVe.caract_veh[0],
         modelo: this.dataVe.caract_veh[2],
         tp: medio,
         total: total,

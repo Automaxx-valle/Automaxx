@@ -10,9 +10,8 @@
           <h2>Vehículos</h2>
           <p>
             En esta sección podrás revisar el registro de un vehículo que haya
-            ingresado en cualquier día del mes (lo máximo que los usuarios no
-            administradores pueden gestionar es hasta un día antes), en base a
-            su ID.
+            ingresado en cualquier día del mes (los usuarios no administradores
+            pueden gestionar únicamente el día actual), en base a su FOLIO.
           </p>
 
           <div class="card">

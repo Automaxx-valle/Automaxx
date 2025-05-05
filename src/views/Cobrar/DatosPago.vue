@@ -55,10 +55,14 @@
     </div>
     <div v-else>
       <h2>El vehículo no tiene ningún adeudo</h2>
-      <p>
-        Se liquidó el pago el día {{ this.fecha_pago }} a
-        {{ this.info.usuario_pagaron }}
-      </p>
+      <div v-for="(pago, index) in info.pagos" :key="index">
+        <p v-if="pago.fecha">
+          Se liquidó el pago el día
+          {{ new Date(pago.fecha.seconds * 1000).toLocaleString() }} a
+          {{ pago.usuario }} por ${{ pago.monto }}.
+        </p>
+        <p v-else>sin fecha</p>
+      </div>
     </div>
   </section>
 
@@ -83,7 +87,6 @@
 
 <script>
 //importar firebase
-import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import db from "../../firebase/init.js";
@@ -97,10 +100,7 @@ import {
 
 export default {
   props: {
-    id: String,
-    day: Number,
     info: Object,
-    user: String,
   },
   data() {
     return {
@@ -111,8 +111,6 @@ export default {
       //tipos de pagos
       total: 0,
       tipos: [],
-      //fechas
-      fecha_pago: null,
     };
   },
   name: "DatosPago",
@@ -121,7 +119,6 @@ export default {
     info() {
       if (this.info) {
         this.total = this.info.total - this.info.pagado - this.info.descuento;
-        this.guardarInfo();
         if (this.total > 0) {
           this.obtenerTiposPagos();
         }
@@ -146,15 +143,6 @@ export default {
         .catch((error) => {
           this.$emit("aviso", 0, error);
         });
-    },
-
-    //Guardar en las variables la info correspondiente del vehiculo
-    guardarInfo() {
-      //Revisar si ya esta pagado
-      if (this.total == 0) {
-        const date = new Date(this.info.fecha_pago.seconds * 1000);
-        this.fecha_pago = date.toLocaleString();
-      }
     },
 
     //Validar el folio de la cortesía
