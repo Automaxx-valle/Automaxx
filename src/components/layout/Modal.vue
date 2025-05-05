@@ -30,13 +30,19 @@
         <button
           class="btn button btn-primary"
           @click="ref"
+          type="button"
           v-if="mess == 'éxito!'"
         >
           Aceptar
         </button>
 
         <!--Cerrar normalmente el modal-->
-        <button class="btn button btn-primary" @click="closeModal" v-else>
+        <button
+          class="btn button btn-primary"
+          @click="closeModal"
+          type="button"
+          v-else
+        >
           <strong v-if="opc == 9">Cancelar</strong>
           <strong v-else>Aceptar</strong>
         </button>
@@ -45,12 +51,12 @@
         <button
           class="btn button btn-primary"
           @click="eliminarColeccion"
+          type="button"
           v-if="opc == 9"
         >
           <strong>Eliminar</strong>
         </button>
       </form>
-
     </div>
   </transition>
 </template>

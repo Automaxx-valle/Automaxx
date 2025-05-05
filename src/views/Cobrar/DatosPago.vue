@@ -68,7 +68,7 @@
     <form class="f">
       <button
         class="btn button btn-primary"
-        type="submit"
+        type="button"
         @click="validarCortesia"
         :disabled="!pagado || !medio"
       >

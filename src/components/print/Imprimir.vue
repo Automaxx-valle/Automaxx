@@ -9,10 +9,18 @@
         <h1>Imprimir</h1>
       </header>
       <form class="f">
-        <button class="btn button btn-primary" @click="imprimirPDF">
+        <button
+          class="btn button btn-primary"
+          @click="imprimirPDF"
+          type="button"
+        >
           <strong>Volver a imprimir</strong>
         </button>
-        <button class="btn button btn-primary" @click="closePrint">
+        <button
+          class="btn button btn-primary"
+          @click="closePrint"
+          type="button"
+        >
           <strong>Cerrar</strong>
         </button>
       </form>
@@ -21,6 +29,8 @@
 </template>
 
 <script>
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+
 export default {
   props: {
     show: Boolean,
@@ -30,11 +40,30 @@ export default {
   watch: {
     show: function (newShowValue) {
       if (newShowValue) {
-        this.imprimirPDF();
+        this.obtenerTelefono();
       }
     },
   },
+  data() {
+    return {
+      telefono: null,
+    };
+  },
   methods: {
+    //Obtiene los datos para el ticket
+    async obtenerTelefono() {
+      try {
+        const db = getFirestore();
+        const docRef = doc(db, "Adicional", "Telefono");
+        const docSnap = await getDoc(docRef);
+        this.telefono = docSnap.data().descripcion || "";
+        this.imprimirPDF();
+      } catch (error) {
+        this.telefono = null;
+      }
+    },
+
+    //Manda a imprimir el recibo
     imprimirPDF() {
       //Construir las filas dinámicamente de los servicios
       const listaServicios = this.data.servicios.map((servicio, index) => {
@@ -66,18 +95,20 @@ export default {
 
       //Variable html
       const content = `
-      <div style= "margin: 0; padding: 0; line-height: 0.4;">
-      <img src="${require("@/components/assets/logo_al.png")}" style="width: 200px;">
-      <h2>Folio: ${this.data.id}</h2>
-      <div>
-        <p>Vehículo: ${this.data.modelo} - ${this.data.placas}</p>
-        <h1>EQ: ${this.data.equipo}</h1>
-        <p>Ingreso: ${this.data.fecha}</p>
-        <p>Teléfono: ${this.data.tel}</p>
-        <table border="1">
+      <div style="margin: 0; padding: 0; display: inline-block; line-height: 0.4;">
+        <img src="${require("@/components/assets/logo_al.png")}" style="width: 200px;">
+        <h2>FOLIO: ${this.data.id}</h2>
+      </div>
+      <label style="font-size: 12px;">VEHICULO: ${this.data.modelo.toUpperCase()} - ${this.data.placas.toUpperCase()}</label>
+      <div style="margin: 0; padding: 0; display: inline-block; line-height: 0.4;">
+        <h2>EQ: ${this.data.equipo.toUpperCase()}</h2>
+        <p style="font-size: 12px">INGRESO: ${this.data.fecha}</p>
+        <p style="font-size: 12px">TELEFONO: ${this.telefono || ""}</p>
+      </div>
+      <table border="1" style="font-size: 12px">
           <tr>
-              <th>Servicios</th>
-              <th>Importe</th>
+              <th>SERVICIOS</th>
+              <th>IMPORTE</th>
           </tr>
           ${filasServicios}
           ${filaDescuento}
@@ -86,12 +117,10 @@ export default {
             <td>${this.data.total - this.data.descuento}</td>
           </tr>
           <tr>
-            <td>Observaciones:</td>
-            <td>${this.data.observacion}</td>
+            <td>OBSERVACION</td>
+            <td>${this.data.observacion || ""}</td>
           </tr>
       </table>
-      </div>
-      </div>
       <p style="font-size: 9px;">IMPORTANTE: NO NOS HACEMOS RESPONSABLES POR LOS OBJETOS DE VALOR OLVIDADOS DENTRO DEL AUTO, 
         NI POR FALLAS MECÁNICAS O ELÉCTRICAS, NI POR EL DAÑO Y/O ROBO TOTAL O PARCIAL DEL AUTO, EL 
         SERVICIO DE LAVADO ES DE 45 MINUTOS, POR LO QUE PEDIMOS DE LA MANERA MÁS ATENTA RECOGER SU 
@@ -116,6 +145,7 @@ export default {
       return true;
     },
 
+    //Cierra el cuadro de impresión
     closePrint() {
       this.$emit("close");
     },

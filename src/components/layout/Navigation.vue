@@ -96,9 +96,6 @@
 
           <template v-else>
             <div class="buttons">
-              <!--<router-link class="button is-light" to="/register">
-                <strong>Registrarme</strong>
-              </router-link>-->
               <router-link class="button btn-primary" to="/login">
                 Iniciar sesión
               </router-link>

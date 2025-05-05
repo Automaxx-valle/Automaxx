@@ -77,7 +77,7 @@
           <!--Botón para imprimir el ticket de ingreso-->
           <button
             class="btn button btn-primary"
-            type="submit"
+            type="button"
             @click="imprimirPDF(documento)"
           >
             <strong>
@@ -85,11 +85,13 @@
               Imprimir ticket
             </strong>
           </button>
+
           <!--Botón para imprimir el ticket de pago-->
           <button
             class="btn button btn-primary"
-            type="submit"
+            type="button"
             @click="imprimirPago(documento)"
+            :disabled="documento.data.pagado < 1"
           >
             <strong>
               <i class="fa fa-credit-card espacio-der"></i>
@@ -101,7 +103,7 @@
         <!--Botón para enviar mensaje al cliente-->
         <button
           class="btn button btn-primary"
-          type="submit"
+          type="button"
           @click="sendWhatsAppMessage(documento.data.cliente)"
           :disabled="!esTelefonoValido(documento.data.cliente)"
         >
@@ -191,20 +193,22 @@ export default {
 
     //Imprimir pago
     imprimirPago(doc) {
-      const ultimoPago = this.ultimoPago;
+      if (doc.data.pagado > 0) {
+        const ultimoPago = this.ultimoPago;
 
-      this.dataP = {
-        fecha: new Date(ultimoPago.fecha.seconds * 1000).toLocaleString(),
-        cajero: ultimoPago.usuario,
-        id: doc.id,
-        modelo: doc.data.caract_veh[2],
-        tp: ultimoPago.medio,
-        total: doc.data.total - doc.data.descuento,
-        pagado: doc.data.pagado,
-        restante: doc.data.total - doc.data.pagado - doc.data.descuento,
-        tel: doc.data.cliente ? doc.data.cliente : "",
-      };
-      this.showPrintP = true;
+        this.dataP = {
+          fecha: new Date(ultimoPago.fecha.seconds * 1000).toLocaleString(),
+          cajero: ultimoPago.usuario,
+          id: doc.id,
+          placas: doc.data.caract_veh[0],
+          modelo: doc.data.caract_veh[2],
+          tp: ultimoPago.medio,
+          total: doc.data.total - doc.data.descuento,
+          pagado: doc.data.pagado,
+          restante: doc.data.total - doc.data.pagado - doc.data.descuento,
+        };
+        this.showPrintP = true;
+      }
     },
     closePrintP() {
       this.showPrintP = false;

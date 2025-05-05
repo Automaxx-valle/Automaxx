@@ -11,31 +11,19 @@
           <h2>Estatus de los vehículos</h2>
           <div class="card">
             <div class="horizontal">
-              <button
-                class="btn button btn-primary"
-                type="submit"
-                @click="cambiarOpcion(1)"
-              >
+              <button class="btn button btn-primary" @click="cambiarOpcion(1)">
                 <strong>
                   <i class="fa fa-cog espacio-der"></i>
                   Pendientes
                 </strong>
               </button>
-              <button
-                class="btn button btn-primary"
-                type="submit"
-                @click="cambiarOpcion(2)"
-              >
+              <button class="btn button btn-primary" @click="cambiarOpcion(2)">
                 <strong>
                   <i class="fa fa-check espacio-der"></i>
                   Pagados
                 </strong>
               </button>
-              <button
-                class="btn button btn-primary"
-                type="submit"
-                @click="cambiarOpcion(4)"
-              >
+              <button class="btn button btn-primary" @click="cambiarOpcion(4)">
                 <strong>
                   <i class="fa fa-credit-card espacio-der"></i>
                   Descuento
@@ -58,7 +46,9 @@
             v-model="busqueda"
           />
           <info-vehiculo
-            v-for="(documento, index) in vehiculosFiltradosPendientes"
+            v-for="(documento, index) in vehiculosFiltradosPendientes
+              .slice()
+              .reverse()"
             :key="index"
             :documento="documento"
           ></info-vehiculo>
@@ -74,7 +64,9 @@
             v-model="busqueda"
           />
           <info-vehiculo
-            v-for="(documento, index) in vehiculosFiltradosPagados"
+            v-for="(documento, index) in vehiculosFiltradosPagados
+              .slice()
+              .reverse()"
             :key="index"
             :documento="documento"
           ></info-vehiculo>
@@ -84,7 +76,7 @@
         <section v-if="this.opc == 4">
           <h2>Vehículos con descuento ({{ this.descuento.length }})</h2>
           <info-vehiculo
-            v-for="(documento, index) in descuento"
+            v-for="(documento, index) in descuento.slice().reverse()"
             :key="index"
             :documento="documento"
           ></info-vehiculo>

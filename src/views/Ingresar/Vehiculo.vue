@@ -56,7 +56,7 @@
                   :key="tipo.id"
                   :value="tipo.id"
                 >
-                  {{ tipo.id }}
+                  {{ tipo.id.toUpperCase() }}
                 </option>
               </select>
             </div>
@@ -149,7 +149,7 @@
       <form class="f">
         <button
           class="btn button btn-primary"
-          type="submit"
+          type="button"
           @click="regresar"
           :disabled="!formIsValid"
         >

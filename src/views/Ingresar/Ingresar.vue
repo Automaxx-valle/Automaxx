@@ -85,7 +85,6 @@ export default {
       nombre: null,
       tel: null,
       //vehiculo
-      id_ve: null,
       caract: [],
       servicios: [],
       //costos
@@ -124,41 +123,13 @@ export default {
     },
 
     //Vehiculo
-    async vehiculo(total, caract, servicios, precios) {
+    vehiculo(total, caract, servicios, precios) {
       this.total = total;
       this.caract = caract;
       this.servicios = servicios;
       this.precios = precios;
       this.fechaYhora();
-      this.id_ve = await this.generarFolio();
       this.agregarDescuento = true;
-    },
-    async generarFolio() {
-      const folioRef = db.collection("folios").doc("vehiculos");
-
-      try {
-        const newFolio = await db.runTransaction(async (transaction) => {
-          const folioDoc = await transaction.get(folioRef);
-          let current = 0;
-          if (folioDoc.exists) {
-            current = folioDoc.data().contador || 0; // Obtén el valor del contador
-          }
-
-          // Si el contador supera los 99999 (5 dígitos), reiniciamos a 1
-          const next = current >= 99999 ? 1 : current + 1;
-
-          // Actualiza el contador
-          transaction.set(folioRef, { contador: next }, { merge: true });
-
-          return next;
-        });
-
-        // Devuelve el folio con 5 dígitos, añadiendo ceros a la izquierda si es necesario
-        return String(newFolio).padStart(5, "0");
-      } catch (e) {
-        console.error("Error generando folio:", e);
-        return "ERR"; // Valor por defecto si algo falla
-      }
     },
 
     //Obtener la fecha y hora del servidor
@@ -175,49 +146,36 @@ export default {
     },
 
     //Pago
-    closePago() {
-      this.agregarDescuento = false;
-    },
-    pago(descuento) {
-      //Guardar el descuento
+    async pago(descuento) {
+      //Cerrar el modal de descuento
       this.closePago();
+      //Guardar el descuento
       this.descuento = descuento;
-      //Proceder con el ingreso
-      if (this.datosValidos()) {
-        const collectionRef = db.collection(this.day);
-        collectionRef
-          .doc(this.id_ve)
-          .set({
-            usuario_ingreso: this.user,
-            cliente: this.tel ? this.tel.toString() : "",
-            nombre: this.nombre ? this.nombre.toString() : "",
-            caract_veh: this.caract,
-            servicios: this.servicios,
-            precios: this.precios,
-            fecha_ingresado: firebase.firestore.FieldValue.serverTimestamp(),
-            total: this.total,
-            pagado: 0,
-            pagos: [],
-            descuento: this.descuento,
-          })
-          .then(() => {
-            this.openModal(3, "éxito!");
-            this.imprimirPDF();
-          })
-          .catch((err) => {
-            this.openModal(0, err.message);
-          });
+      //Generar el id del vehículo
+      const id_ve = await this.generarFolio();
+      //Evaluar si se puede ingresar el vehiculo
+      if (id_ve != null) {
+        if (this.datosValidos()) {
+          this.ingresar(id_ve);
+        } else {
+          this.openModal(
+            0,
+            "Algún dato en el formulario es inválido o no está bien definido"
+          );
+        }
       } else {
         this.openModal(
           0,
-          "Algún dato en el formulario es inválido o no está bien definido"
+          "Error al obtener el folio. No se pudo obtener el contador"
         );
       }
+    },
+    closePago() {
+      this.agregarDescuento = false;
     },
     datosValidos() {
       return (
         !!this.day &&
-        !!this.id_ve &&
         !!this.user &&
         !!this.caract.length > 0 &&
         !!this.servicios.length > 0 &&
@@ -226,10 +184,67 @@ export default {
       );
     },
 
+    //Generar folio
+    async generarFolio() {
+      const folioRef = db.collection("folios").doc("vehiculos");
+      let retries = 3; // Intentos máximos para manejar la concurrencia
+      while (retries > 0) {
+        try {
+          const newFolio = await db.runTransaction(async (transaction) => {
+            const folioDoc = await transaction.get(folioRef);
+            let current = 1;
+            if (folioDoc.exists) {
+              current = folioDoc.data().contador || 1; // Obtener el contador actual
+            }
+            // Si el contador supera los 99999 (5 dígitos), reiniciamos a 1
+            const next = current >= 99999 ? 1 : current + 1;
+            // Actualiza el contador atómicamente
+            transaction.set(folioRef, { contador: next });
+            return next;
+          });
+          // Devuelve el folio con 5 dígitos, añadiendo ceros a la izquierda si es necesario
+          return String(newFolio).padStart(5, "0");
+        } catch (e) {
+          retries -= 1; // Quitar un intento
+          if (retries <= 0) {
+            // Se acabaron los intentos
+            return null;
+          }
+        }
+      }
+    },
+
+    //Ingresar el vehiculo
+    ingresar(id_ve) {
+      const collectionRef = db.collection(this.day);
+      collectionRef
+        .doc(id_ve)
+        .set({
+          usuario_ingreso: this.user,
+          cliente: this.tel ? this.tel.toString() : "",
+          nombre: this.nombre ? this.nombre.toString() : "",
+          caract_veh: this.caract,
+          servicios: this.servicios,
+          precios: this.precios,
+          fecha_ingresado: firebase.firestore.FieldValue.serverTimestamp(),
+          total: this.total,
+          pagado: 0,
+          pagos: [],
+          descuento: this.descuento,
+        })
+        .then(() => {
+          this.openModal(3, "éxito!");
+          this.imprimirPDF(id_ve);
+        })
+        .catch((err) => {
+          this.openModal(0, err.message);
+        });
+    },
+
     //Imprimir recibo
-    imprimirPDF() {
+    imprimirPDF(id_ve) {
       this.data = {
-        id: this.id_ve,
+        id: id_ve,
         tipo: this.caract[1],
         modelo: this.caract[2],
         placas: this.caract[0],

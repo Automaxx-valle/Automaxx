@@ -17,6 +17,7 @@
           <!--Descuentos-->
           <button
             class="btn button btn-primary"
+            type="button"
             @click="passCierto"
             v-if="descuentos.length < 1"
           >
@@ -43,7 +44,7 @@
           <!--Enviar el descuento-->
           <button
             class="btn button btn-primary"
-            type="submit"
+            type="button"
             @click="correcto"
           >
             <strong>
@@ -53,7 +54,7 @@
           </button>
 
           <!--Cerrar el modal de pago-->
-          <button class="btn button btn-primary" @click="cerrar">
+          <button class="btn button btn-primary" @click="cerrar" type="button">
             <strong>
               <i class="fa fa-arrow-left espacio-der"></i>
               Regresar

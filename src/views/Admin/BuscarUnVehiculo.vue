@@ -25,7 +25,7 @@
               />
               <button
                 class="btn button btn-primary"
-                type="submit"
+                type="button"
                 @click="buscarVehiculo()"
                 :disabled="!this.id_ve"
               >

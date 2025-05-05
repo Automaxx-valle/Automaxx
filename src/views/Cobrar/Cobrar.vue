@@ -20,7 +20,7 @@
               <div class="btn cincuenta">
                 <button
                   class="btn button btn-primary"
-                  type="submit"
+                  type="button"
                   @click="buscarVehiculo()"
                 >
                   <strong>

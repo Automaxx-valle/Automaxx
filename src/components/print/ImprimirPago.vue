@@ -9,10 +9,18 @@
         <h1>Imprimir</h1>
       </header>
       <form class="f">
-        <button class="btn button btn-primary" @click="obtenerDescripciones">
+        <button
+          class="btn button btn-primary"
+          @click="obtenerDescripciones"
+          type="button"
+        >
           <strong>Volver a imprimir</strong>
         </button>
-        <button class="btn button btn-primary" @click="closePrint">
+        <button
+          class="btn button btn-primary"
+          @click="closePrint"
+          type="button"
+        >
           <strong>Cerrar</strong>
         </button>
       </form>
@@ -79,11 +87,11 @@ export default {
       const content = `
       <div style="text-align: center;">
       <p>${this.data.fecha}</p>
-      <h1>${this.data.cajero}</h1>
-      <h1>${this.descripciones[1]}</h1>
+      <h2>${this.data.cajero}</h2>
+      <h2>${this.descripciones[1]}</h2>
       <p></p>
-      <p>RFC ${this.descripciones[2]}</p>
-      <h2>Folio: ${this.data.id}</h2>
+      <p>RFC: ${this.descripciones[2]}</p>
+      <p>FOLIO: ${this.data.id}</p>
         <table border="1">
           <tr>
               <th>Vehículo</th>
@@ -93,7 +101,7 @@ export default {
               <th>Restante</th>
           </tr>
           <tr>
-              <th>${this.data.modelo}</th>
+              <th>${this.data.modelo} ${this.data.placas.toUpperCase()}</th>
               <th>${this.data.tp}</th>
               <th>${this.data.total}</th>
               <th>${this.data.pagado}</th>
@@ -101,9 +109,9 @@ export default {
           </tr>
       </table>
       <p>Teléfono: ${this.descripciones[4]}</p>
-      <h1>WIFI</h1>
-      <h2>Red: ${this.descripciones[3]}</h2>
-      <h2>Contraseña: ${this.descripciones[0]}</h2>
+      <h2>WIFI</h2>
+      <h3>Red: ${this.descripciones[3]}</h3>
+      <h3>Contraseña: ${this.descripciones[0]}</h3>
       </div>
     `;
 
