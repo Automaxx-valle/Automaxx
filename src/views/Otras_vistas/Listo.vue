@@ -188,7 +188,7 @@ export default {
         });
     },
     clasificar(doc, dia) {
-      if (doc.data().total == doc.data().pagado) {
+      if (doc.data().total >= doc.data().pagado) {
         this.entregados.push({ id: doc.id, data: doc.data(), mes: dia });
       } else {
         this.listos.push({ id: doc.id, data: doc.data(), mes: dia });

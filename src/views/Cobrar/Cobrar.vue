@@ -181,43 +181,55 @@ export default {
     },
 
     //Actualizar datos del pago
-    pagar(pagado, medio) {
-      //Evita que se duplique el pago
-      if (!this.pagando) {
-        this.pagando = true;
+    async pagar(pagado, medio) {
+      if (this.pagando) return; // Evita ejecuciones múltiples simultáneas
 
-        //Actualiza la informacion en el servidor
-        if (this.formIsValid) {
-          const docRef = db.collection(this.day).doc(this.id_ve);
-          const nuevoPago = {
-            monto: pagado,
-            medio: medio,
-            fecha: new Date(),
-            usuario: this.user,
-          };
+      this.pagando = true;
 
-          docRef
-            .update({
-              pagos: firebase.firestore.FieldValue.arrayUnion(nuevoPago),
-              pagado: firebase.firestore.FieldValue.increment(pagado),
-            })
-            .then(() => {
-              this.imprimirPDF(pagado, medio);
-              this.openModal(3, "éxito!");
-            })
-            .catch((err) => {
-              this.openModal(0, err.message);
-            })
-            .finally(() =>{
-              this.pagando = false;
-            });
-        } else {
-          this.pagando = false;
-          this.openModal(
-            0,
-            "Algún dato en el formulario es inválido o no está bien definido"
+      if (this.formIsValid) {
+        const docRef = db.collection(this.day).doc(this.id_ve);
+        const nuevoPago = {
+          monto: pagado,
+          medio: medio,
+          fecha: new Date(),
+          usuario: this.user,
+        };
+
+        // Verifica primero que no esté duplicado el pago
+        try {
+          const doc = await docRef.get();
+          const data = doc.data();
+
+          const yaPagado = data.pagos?.some(
+            (p) =>
+              p.monto === pagado &&
+              p.medio === medio &&
+              p.usuario === this.user &&
+              Math.abs(new Date() - p.fecha.toDate()) < 10000 // Diferencia menor a 10 segundos
           );
+
+          if (yaPagado) {
+            return;
+          }
+
+          await docRef.update({
+            pagos: firebase.firestore.FieldValue.arrayUnion(nuevoPago),
+            pagado: firebase.firestore.FieldValue.increment(pagado),
+          });
+
+          this.imprimirPDF(pagado, medio);
+          this.openModal(3, "¡Éxito!");
+        } catch (err) {
+          this.openModal(0, err.message);
+        } finally {
+          this.pagando = false;
         }
+      } else {
+        this.pagando = false;
+        this.openModal(
+          0,
+          "Algún dato en el formulario es inválido o no está bien definido"
+        );
       }
     },
 
