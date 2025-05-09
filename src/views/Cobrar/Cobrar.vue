@@ -218,7 +218,7 @@ export default {
           });
 
           this.imprimirPDF(pagado, medio);
-          this.openModal(3, "¡Éxito!");
+          this.openModal(3, "éxito!");
         } catch (err) {
           this.openModal(0, err.message);
         } finally {

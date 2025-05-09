@@ -99,6 +99,7 @@ export default {
       //imprimir
       showPrint: false,
       data: null,
+      isProcessing: false,
     };
   },
   name: "Ingresar",
@@ -147,27 +148,38 @@ export default {
 
     //Pago
     async pago(descuento) {
-      //Cerrar el modal de descuento
-      this.closePago();
-      //Guardar el descuento
-      this.descuento = descuento;
-      //Generar el id del vehículo
-      const id_ve = await this.generarFolio();
-      //Evaluar si se puede ingresar el vehiculo
-      if (id_ve != null) {
-        if (this.datosValidos()) {
-          this.ingresar(id_ve);
-        } else {
-          this.openModal(
-            0,
-            "Algún dato en el formulario es inválido o no está bien definido"
-          );
+      if (this.isProcessing) return; // Evitar múltiples llamadas
+      this.isProcessing = true;
+
+      try {
+        this.closePago();
+        this.descuento = descuento;
+
+        //Evita duplicados
+        const yaExiste = await this.validarDuplicado(this.caract[0]);
+        if (yaExiste) {
+          return;
         }
-      } else {
-        this.openModal(
-          0,
-          "Error al obtener el folio. No se pudo obtener el contador"
-        );
+
+        //Continua si no existe duplicado
+        const id_ve = await this.generarFolio();
+
+        if (id_ve != null) {
+          if (this.datosValidos()) {
+            await this.ingresar(id_ve);
+          } else {
+            this.openModal(
+              0,
+              "Algún dato en el formulario es inválido o no está bien definido"
+            );
+          }
+        } else {
+          this.openModal(0, "Error al obtener el folio.");
+        }
+      } catch (e) {
+        this.openModal(0, e);
+      } finally {
+        this.isProcessing = false;
       }
     },
     closePago() {
@@ -212,6 +224,20 @@ export default {
           }
         }
       }
+    },
+
+    //Validar duplicado
+    async validarDuplicado(placa) {
+      const ahora = new Date();
+      const haceUnMinuto = new Date(ahora.getTime() - 60 * 1000); // 1 minuto atrás
+
+      const snapshot = await db
+        .collection(this.day)
+        .where("caract_veh.0", "==", placa)
+        .where("fecha_ingresado", ">=", haceUnMinuto)
+        .get();
+
+      return !snapshot.empty; // true si ya existe un vehículo con esa placa recientemente
     },
 
     //Ingresar el vehiculo
