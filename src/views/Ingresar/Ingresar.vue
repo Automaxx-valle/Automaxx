@@ -156,10 +156,10 @@ export default {
         this.descuento = descuento;
 
         //Evita duplicados
-        const yaExiste = await this.validarDuplicado(this.caract[0]);
-        if (yaExiste) {
-          return;
-        }
+        //const yaExiste = await this.validarDuplicado(this.caract[0]);
+        //if (yaExiste) {
+          //return;
+        //}
 
         //Continua si no existe duplicado
         const id_ve = await this.generarFolio();
