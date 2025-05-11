@@ -74,7 +74,7 @@
         class="btn button btn-primary"
         type="button"
         @click="validarCortesia"
-        :disabled="!pagado || !medio"
+        :disabled="!pagado || !medio || deshabilitado"
       >
         <strong>
           <i class="fa fa-upload espacio-der"></i>
@@ -111,12 +111,15 @@ export default {
       //tipos de pagos
       total: 0,
       tipos: [],
+      //seguridad
+      deshabilitado: false,
     };
   },
   name: "DatosPago",
   watch: {
     //Se activa cuando detecta un cambio en info
     info() {
+      this.deshabilitado = false;
       if (this.info) {
         this.total = this.info.total - this.info.pagado - this.info.descuento;
         if (this.total > 0) {
@@ -177,6 +180,7 @@ export default {
 
     //Regresar la informacion al componente padre
     enviar() {
+      this.deshabilitado = true;
       if (this.pagado <= this.total && this.medio) {
         this.$emit("regreso", this.pagado, this.medio);
       } else {

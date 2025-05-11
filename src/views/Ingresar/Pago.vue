@@ -41,11 +41,12 @@
             </ul>
           </div>
 
-          <!--Enviar el descuento-->
+          <!--Subir la información-->
           <button
             class="btn button btn-primary"
             type="button"
             @click="correcto"
+            :disabled="deshabilitado"
           >
             <strong>
               <i class="fa fa-upload espacio-der"></i>
@@ -96,6 +97,7 @@ export default {
       total: this.subtotal,
       //error
       error: null,
+      deshabilitado: false,
     };
   },
   name: "Pago",
@@ -162,6 +164,7 @@ export default {
 
     //Seguir con el pago
     correcto() {
+      this.deshabilitado = true;
       if (this.total >= 0) {
         this.error = null;
         this.$emit("pago", this.descuento);

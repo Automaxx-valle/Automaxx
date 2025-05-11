@@ -158,7 +158,7 @@ export default {
         //Evita duplicados
         //const yaExiste = await this.validarDuplicado(this.caract[0]);
         //if (yaExiste) {
-          //return;
+        //return;
         //}
 
         //Continua si no existe duplicado
@@ -174,7 +174,7 @@ export default {
             );
           }
         } else {
-          this.openModal(0, "Error al obtener el folio.");
+          this.openModal(0, "Error al obtener el folio");
         }
       } catch (e) {
         this.openModal(0, e);
@@ -199,35 +199,25 @@ export default {
     //Generar folio
     async generarFolio() {
       const folioRef = db.collection("folios").doc("vehiculos");
-      let retries = 3; // Intentos máximos para manejar la concurrencia
-      while (retries > 0) {
-        try {
-          const newFolio = await db.runTransaction(async (transaction) => {
-            const folioDoc = await transaction.get(folioRef);
-            let current = 1;
-            if (folioDoc.exists) {
-              current = folioDoc.data().contador || 1; // Obtener el contador actual
-            }
-            // Si el contador supera los 99999 (5 dígitos), reiniciamos a 1
-            const next = current >= 99999 ? 1 : current + 1;
-            // Actualiza el contador atómicamente
-            transaction.set(folioRef, { contador: next });
-            return next;
-          });
-          // Devuelve el folio con 5 dígitos, añadiendo ceros a la izquierda si es necesario
-          return String(newFolio).padStart(5, "0");
-        } catch (e) {
-          retries -= 1; // Quitar un intento
-          if (retries <= 0) {
-            // Se acabaron los intentos
-            return null;
+      try {
+        const newFolio = await db.runTransaction(async (transaction) => {
+          const folioDoc = await transaction.get(folioRef);
+          let current = 1;
+          if (folioDoc.exists) {
+            current = folioDoc.data().contador || 1;
           }
-        }
+          const next = current >= 99999 ? 1 : current + 1;
+          transaction.set(folioRef, { contador: next });
+          return next;
+        });
+        return String(newFolio).padStart(5, "0");
+      } catch (e) {
+        return null; // Si hay error, no se intenta otra vez
       }
     },
 
     //Validar duplicado
-    async validarDuplicado(placa) {
+    /*async validarDuplicado(placa) {
       const ahora = new Date();
       const haceUnMinuto = new Date(ahora.getTime() - 60 * 1000); // 1 minuto atrás
 
@@ -238,7 +228,7 @@ export default {
         .get();
 
       return !snapshot.empty; // true si ya existe un vehículo con esa placa recientemente
-    },
+    },*/
 
     //Ingresar el vehiculo
     ingresar(id_ve) {
