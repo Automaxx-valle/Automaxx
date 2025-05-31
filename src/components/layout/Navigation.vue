@@ -40,6 +40,15 @@
                   <i class="fa fa-car"></i>
                   <span class="espacio-izq">Ingresar un vehículo</span>
                 </router-link>
+                <!--Editar un vehículo-->
+                <router-link
+                  class="navbar-item"
+                  to="/Editar"
+                  v-if="rol == 1 || rol == 3"
+                >
+                  <i class="fa fa-random"></i>
+                  <span class="espacio-izq">Modificar un ticket</span>
+                </router-link>
                 <!--Cobrar-->
                 <router-link
                   class="navbar-item"

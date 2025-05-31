@@ -18,7 +18,7 @@
           <button
             class="btn button btn-primary"
             type="button"
-            @click="passCierto"
+            @click="obtenerDescuentos"
             v-if="descuentos.length < 1"
           >
             <strong>
@@ -33,10 +33,15 @@
                 <input
                   type="checkbox"
                   class="mycheck espacio-der"
+                  :checked="seleccionados[index]"
                   @change="cambiarEstado(index)"
                 />
-                <strong>{{ item.id }}: </strong>
-                ${{ item.valor }}
+                <strong v-if="item.tipo == 'porcentaje'"
+                  >{{ item.id }}: {{ item.valor }}%</strong
+                >
+                <strong v-if="item.tipo == 'fijo'"
+                  >{{ item.id }}: ${{ item.valor }}</strong
+                >
               </li>
             </ul>
           </div>
@@ -107,17 +112,10 @@ export default {
     },
   },
   methods: {
-    //Se quiere agregar un descuento
-    passCierto() {
-      this.obtenerDescuentos();
-      this.igualar();
-    },
-
     // Obtener los descuentos
     async obtenerDescuentos() {
       //Limpiar variables
       this.descuentos = [];
-      this.seleccionados = [];
       this.descuento = 0;
 
       //Hacer la consulta a Firebase
@@ -132,14 +130,19 @@ export default {
           this.descuentos = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             valor: doc.data().cantidad,
+            tipo: doc.data().tipo,
           }));
           this.error = null;
+          this.igualar();
         }
       } catch (error) {
         this.error = "Error al obtener los descuentos: " + error;
       }
     },
+
+    // Igualar la longitud de seleccionados con descuentos
     igualar() {
+      this.seleccionados = [];
       for (let i = 0; i < this.descuentos.length; i++) {
         this.seleccionados.push(false);
       }
@@ -147,7 +150,17 @@ export default {
 
     // Seleccionar los descuentos
     cambiarEstado(index) {
-      this.seleccionados[index] = !this.seleccionados[index];
+      // Si el descuento está activo lo desactiva
+      let opcion = true;
+      if (this.seleccionados[index] == true) {
+        opcion = false;
+      }
+      // Si el descuento no está activo, lo activa, desactivando los demás primero
+      this.igualar();
+      if(opcion){
+        this.seleccionados[index] = !this.seleccionados[index];
+      }
+      // Se actualiza el total con el descuento correspondiente
       this.obtenerTotal();
     },
 
@@ -156,7 +169,12 @@ export default {
       this.descuento = 0;
       for (let i = 0; i < this.seleccionados.length; i++) {
         if (this.seleccionados[i]) {
-          this.descuento += this.descuentos[i].valor;
+          if(this.descuentos[i].tipo == 'porcentaje'){
+            this.descuento = (this.total * this.descuentos[i].valor) / 100;
+          }else{
+            this.descuento = this.descuentos[i].valor;
+          }
+          break;
         }
       }
       this.total = this.subtotal - this.descuento;

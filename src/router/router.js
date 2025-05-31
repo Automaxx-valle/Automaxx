@@ -7,6 +7,7 @@ import Dashboard from '../views/Reportes/Dashboard.vue'
 import Update from '../views/Auth/Update.vue'
 import UpdateSecret from '@/views/Auth/UpdateSecret.vue'
 import Ingresar from '../views/Ingresar/Ingresar.vue'
+import Editar from '@/views/Ingresar/Editar.vue'
 import Cobrar from '../views/Cobrar/Cobrar.vue'
 import Listo from '../views/Otras_vistas/Listo.vue'
 import Panel from '../views/Admin/Panel.vue'
@@ -56,6 +57,14 @@ const routes = [
   path: '/Ingresar',
   name: 'Ingresar',
   component: Ingresar,
+  meta: {
+    requireAuth: true
+  }
+},
+{
+  path: '/Editar',
+  name: 'Editar',
+  component: Editar,
   meta: {
     requireAuth: true
   }

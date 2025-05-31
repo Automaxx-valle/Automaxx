@@ -1,4 +1,5 @@
 # Autolavado AutoMaxx
+# Versión 2.1
 
 ## Project setup
 ```

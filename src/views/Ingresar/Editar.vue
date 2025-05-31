@@ -1,0 +1,307 @@
+<template>
+  <div id="app" v-if="user">
+    <div class="container">
+      <div class="home">
+        <header>
+          <h1>Modificar un ticket</h1>
+        </header>
+
+        <!--Folio a modificar-->
+        <section>
+          <h2>Folio a modificar</h2>
+          <div class="card">
+            <input
+              type="text"
+              class="form-control espacio"
+              placeholder="Folio"
+              v-model="id_ve"
+            />
+          </div>
+        </section>
+
+        <!--Datos del cliente-->
+        <section>
+          <h2>Datos del cliente</h2>
+          <div class="card">
+            <input
+              type="text"
+              class="form-control espacio"
+              placeholder="Nombre"
+              v-model="nombre"
+            />
+            <input
+              type="number"
+              class="form-control espacio"
+              placeholder="Teléfono"
+              v-model="tel"
+              @wheel.prevent
+            />
+          </div>
+        </section>
+
+        <!--Datos del vehículo-->
+        <Vehiculo :show="true" @close="vehiculo" @aviso="openModal"> </Vehiculo>
+
+        <!--Agregar descuento-->
+        <Pago
+          :show="agregarDescuento"
+          :subtotal="total"
+          @close="closePago"
+          @pago="pago"
+        ></Pago>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal-->
+  <dialog-component
+    :show="showModal"
+    :opc="opcion"
+    :mess="message"
+    @close="closeModal"
+    @ref="recargar"
+  ></dialog-component>
+
+  <!--Imprimir-->
+  <imprimir-component :show="showPrint" :data="data" @close="closePrint">
+  </imprimir-component>
+</template>
+
+<script>
+//importar firebase
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
+import db from "../../firebase/init.js";
+
+//importar componentes
+import DialogComponent from "../../components/layout/Modal.vue";
+import ImprimirComponent from "@/components/print/Imprimir.vue";
+import Vehiculo from "./Vehiculo.vue";
+import Pago from "./Pago.vue";
+
+export default {
+  components: {
+    DialogComponent,
+    ImprimirComponent,
+    Vehiculo,
+    Pago,
+  },
+  data() {
+    return {
+      //usuario firebase
+      user: null,
+      //fecha
+      day: null,
+      fecha: null,
+      //folio
+      id_ve: null,
+      //cliente
+      nombre: null,
+      tel: null,
+      //vehiculo
+      caract: [],
+      servicios: [],
+      //costos
+      precios: [],
+      total: 0,
+      agregarDescuento: false,
+      descuento: 0,
+      //modal
+      showModal: false,
+      opcion: null,
+      message: null,
+      //imprimir
+      showPrint: false,
+      data: null,
+      isProcessing: false,
+    };
+  },
+  name: "Editar",
+  mounted() {
+    this.identificarUsuario();
+  },
+  methods: {
+    //Modal
+    openModal(opc, mess) {
+      this.showModal = true;
+      this.opcion = opc;
+      this.message = mess;
+    },
+    closeModal() {
+      this.showModal = false;
+    },
+    recargar() {
+      this.closeModal();
+      setTimeout(() => {
+        window.location.reload();
+      }, 0);
+    },
+
+    //Vehiculo
+    vehiculo(total, caract, servicios, precios) {
+      this.total = total;
+      this.caract = caract;
+      this.servicios = servicios;
+      this.precios = precios;
+      this.fechaYhora();
+      this.agregarDescuento = true;
+    },
+
+    //Obtener la fecha y hora del servidor
+    fechaYhora() {
+      const serverTimestamp = firebase.firestore.Timestamp.now();
+      const fecha = serverTimestamp.toDate();
+      var year = (fecha.getFullYear() % 100).toString();
+      var month = (fecha.getMonth() + 1).toString(); // Los meses en JavaScript son de 0 a 11, así que agregamos 1
+      this.day = fecha.getDate().toString();
+      var hours = fecha.getHours().toString();
+      var minutes = fecha.getMinutes().toString();
+      this.fecha =
+        year + "-" + month + "-" + this.day + " " + hours + ":" + minutes;
+    },
+
+    //Pago
+    async pago(descuento) {
+      if (this.isProcessing) return; // Evitar múltiples llamadas
+      this.isProcessing = true;
+
+      try {
+        this.closePago();
+        this.descuento = descuento;
+
+        if (this.id_ve != null) {
+          if (this.datosValidos()) {
+            await this.ingresar();
+          } else {
+            this.openModal(
+              0,
+              "Algún dato en el formulario es inválido o no está bien definido"
+            );
+          }
+        } else {
+          this.openModal(0, "Folio inválido");
+        }
+      } catch (e) {
+        this.openModal(0, e);
+      } finally {
+        this.isProcessing = false;
+      }
+    },
+    closePago() {
+      this.agregarDescuento = false;
+    },
+    datosValidos() {
+      return (
+        !!this.day &&
+        !!this.user &&
+        !!this.caract.length > 0 &&
+        !!this.servicios.length > 0 &&
+        !!this.precios.length > 0 &&
+        !!this.total
+      );
+    },
+
+    //Modificar el vehiculo
+    async ingresar() {
+      const docRef = db.collection(this.day).doc(this.id_ve);
+
+      try {
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+          const data = docSnap.data();
+
+          if (data.pagado === 0) {
+            await docRef.set({
+              usuario_ingreso: this.user,
+              cliente: this.tel ? this.tel.toString() : "",
+              nombre: this.nombre ? this.nombre.toString() : "",
+              caract_veh: this.caract,
+              servicios: this.servicios,
+              precios: this.precios,
+              fecha_ingresado: firebase.firestore.FieldValue.serverTimestamp(),
+              total: this.total,
+              pagado: 0,
+              pagos: [],
+              descuento: this.descuento,
+            });
+
+            this.openModal(3, "éxito!");
+            this.imprimirPDF();
+          } else {
+            this.openModal(
+              0,
+              "El vehículo cuenta con pago, por lo tanto no se puede modificar"
+            );
+          }
+        } else {
+          this.openModal(
+            0,
+            "El vehículo no existe, por lo tanto no se puede modificar"
+          );
+        }
+      } catch (error) {
+        this.openModal(0, "Error al intentar reemplazar: " + error.message);
+      }
+    },
+
+    //Imprimir recibo
+    imprimirPDF() {
+      this.data = {
+        id: this.id_ve,
+        tipo: this.caract[1],
+        modelo: this.caract[2],
+        placas: this.caract[0],
+        equipo: this.caract[3],
+        observacion: this.caract[4],
+        fecha: this.fecha,
+        tel: this.tel,
+        servicios: this.servicios,
+        precios: this.precios,
+        descuento: this.descuento,
+        total: this.total,
+      };
+      this.showPrint = true;
+    },
+    closePrint() {
+      this.showPrint = false;
+    },
+
+    //Usuario firebase
+    identificarUsuario() {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        this.buscarRol(user.uid, user.displayName);
+      } else {
+        this.$router.push({ name: "home" });
+      }
+    },
+    buscarRol(id, user) {
+      const collectionRef = db.collection("Usuarios");
+      const docRef = collectionRef.doc(id);
+      docRef
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            if (doc.data().rol != 1 && doc.data().rol != 3) {
+              this.$router.push({ name: "home" });
+            } else {
+              this.user = user;
+            }
+          } else {
+            this.$router.push({ name: "home" });
+          }
+        })
+        .catch((err) => {
+          this.$router.push({ name: "home" });
+        });
+    },
+  },
+};
+</script>
+
+<style>
+@import url(https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css);
+@import url(https://use.fontawesome.com/releases/v5.0.13/css/all.css);
+</style>

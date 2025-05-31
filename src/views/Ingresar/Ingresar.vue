@@ -155,12 +155,6 @@ export default {
         this.closePago();
         this.descuento = descuento;
 
-        //Evita duplicados
-        //const yaExiste = await this.validarDuplicado(this.caract[0]);
-        //if (yaExiste) {
-        //return;
-        //}
-
         //Continua si no existe duplicado
         const id_ve = await this.generarFolio();
 
@@ -215,20 +209,6 @@ export default {
         return null; // Si hay error, no se intenta otra vez
       }
     },
-
-    //Validar duplicado
-    /*async validarDuplicado(placa) {
-      const ahora = new Date();
-      const haceUnMinuto = new Date(ahora.getTime() - 60 * 1000); // 1 minuto atrás
-
-      const snapshot = await db
-        .collection(this.day)
-        .where("caract_veh.0", "==", placa)
-        .where("fecha_ingresado", ">=", haceUnMinuto)
-        .get();
-
-      return !snapshot.empty; // true si ya existe un vehículo con esa placa recientemente
-    },*/
 
     //Ingresar el vehiculo
     ingresar(id_ve) {
