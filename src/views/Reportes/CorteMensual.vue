@@ -83,7 +83,7 @@ export default {
 
     //Realizar el corte de caja
     async generarCorteCaja() {
-      if (this.cargando) {
+      if (!this.cargando) {
         this.cargando = true;
         const hoy = new Date();
         this.month = (hoy.getMonth() + 1).toString();
