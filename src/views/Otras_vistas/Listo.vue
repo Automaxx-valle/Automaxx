@@ -188,7 +188,8 @@ export default {
         });
     },
     clasificar(doc, dia) {
-      if (doc.data().total <= doc.data().pagado) {
+      const total = doc.data().total - doc.data().descuento;
+      if (total <= doc.data().pagado) {
         this.entregados.push({ id: doc.id, data: doc.data(), mes: dia });
       } else {
         this.listos.push({ id: doc.id, data: doc.data(), mes: dia });
