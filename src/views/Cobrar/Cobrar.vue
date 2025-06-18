@@ -153,23 +153,37 @@ export default {
       hoy.setDate(parseInt(this.day)); // ya tienes this.day desde obtenerMes()
       const diaActual = hoy.getDate().toString();
 
-      //Realiza las consultas
-      const diasConsulta = [diaActual];
-      diasConsulta.forEach((dia) => {
-        const docRef = db.collection(dia).doc(this.id_ve);
-        docRef
-          .get()
-          .then((doc) => {
-            if (doc.exists) {
-              this.guardarInfo(doc);
-            }
-          })
-          .catch((err) => {
-            this.openModal(0, err.message);
-          });
-      });
-      //Cuando llega al final siempre hace esto, pero si se encuentra el vehículo se pone encima el modal 5
-      this.openModal(0, "No se encontró al vehículo");
+      //Obtiene el día anterior
+      hoy.setDate(parseInt(this.day) - 1);
+      const diaAnterior = hoy.getDate().toString();
+
+      // Primero consulta el día actual
+      const docRefActual = db.collection(diaActual).doc(this.id_ve);
+      docRefActual
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            this.guardarInfo(doc);
+          } else {
+            // Si no existe en el día actual, consulta el día anterior
+            const docRefAnterior = db.collection(diaAnterior).doc(this.id_ve);
+            docRefAnterior
+              .get()
+              .then((docAnt) => {
+                if (docAnt.exists) {
+                  this.guardarInfo(docAnt);
+                } else {
+                  this.openModal(0, "No se encontró al vehículo");
+                }
+              })
+              .catch((err) => {
+                this.openModal(0, err.message);
+              });
+          }
+        })
+        .catch((err) => {
+          this.openModal(0, err.message);
+        });
       this.cargando = false;
     },
     guardarInfo(doc) {

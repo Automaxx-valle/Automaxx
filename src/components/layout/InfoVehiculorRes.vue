@@ -1,3 +1,5 @@
+<!--Se utiliza para la informacion de los vehiculos en listo-->
+
 <template>
   <div class="card">
     <div :class="{ amarillo: documento.data.descuento > 0 }">
@@ -29,7 +31,13 @@
               {{ servicio }}
             </span>
           </p>
-          <p><span>Total: </span>${{ documento.data.total }}</p>
+          <p v-if="documento.data?.descuento > 0">
+            <span>Total: </span>${{ documento.data.total }} - ${{
+              documento.data.descuento
+            }}
+            = ${{ documento.data.total - documento.data.descuento }}
+          </p>
+          <p v-else><span>Total: </span>${{ documento.data.total }}</p>
           <p><span>Pagado: </span>${{ documento.data.pagado }}</p>
         </div>
 

@@ -161,19 +161,24 @@ export default {
     buscarVehiculo() {
       this.cargando = true;
 
+      // Obtiene el día actual
       const hoy = new Date();
       hoy.setDate(parseInt(this.day));
       const diaActual = hoy.getDate().toString();
 
-      const diasConsulta = [diaActual];
+      // Obtiene el día anterior
+      hoy.setDate(parseInt(this.day) - 1);
+      const diaAnterior = hoy.getDate().toString();
 
+      // Realizar las consultas
+      const diasConsulta = [diaActual, diaAnterior];
       const promesas = diasConsulta.map((dia) => {
         return db
           .collection(dia)
           .get()
           .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
-              this.clasificar(doc, dia);
+              this.clasificar(doc, dia, diaActual);
             });
           });
       });
@@ -187,15 +192,19 @@ export default {
           this.cargando = false;
         });
     },
-    clasificar(doc, dia) {
+    clasificar(doc, dia, actual) {
       const total = doc.data().total - doc.data().descuento;
       if (total <= doc.data().pagado) {
-        this.entregados.push({ id: doc.id, data: doc.data(), mes: dia });
+        if (dia == actual) {
+          // Solamente se agregan a pagados los del día actual
+          this.entregados.push({ id: doc.id, data: doc.data(), mes: dia });
+        }
       } else {
+        // Se agregan a pendientes los del día y del día anterior
         this.listos.push({ id: doc.id, data: doc.data(), mes: dia });
       }
       //Agregar un duplicado si el vehículo tuvo descuento
-      if (doc.data().descuento > 0) {
+      if (doc.data().descuento > 0 && dia == actual) {
         this.descuento.push({ id: doc.id, data: doc.data(), mes: dia });
       }
     },

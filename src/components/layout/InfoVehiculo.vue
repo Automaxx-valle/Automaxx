@@ -1,3 +1,5 @@
+<!--Se utiliza para la informacion del vehiculo en el panel de administrador-->
+
 <template>
   <div class="card">
     <div :class="{ amarillo: documento.data.descuento > 0 }">

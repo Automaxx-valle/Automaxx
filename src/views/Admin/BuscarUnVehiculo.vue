@@ -11,7 +11,8 @@
           <p>
             En esta sección podrás revisar el registro de un vehículo que haya
             ingresado en cualquier día del mes (los usuarios no administradores
-            pueden gestionar únicamente el día actual), en base a su FOLIO.
+            pueden gestionar únicamente el día actual y el anterior a ese), en
+            base a su FOLIO.
           </p>
 
           <div class="card">
